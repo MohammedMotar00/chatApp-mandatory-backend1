@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import io from 'socket.io-client';
+import { Link } from 'react-router-dom';
 
 const socket = io('localhost:8000');
 
@@ -44,7 +45,7 @@ class AddRooms extends Component {
   };
 
   render() {
-    const { text } = this.state;
+    const { text, rooms } = this.state;
 
     return (
       <div>
@@ -56,6 +57,15 @@ class AddRooms extends Component {
           />
           <button type="submit">Add room</button>
         </form>
+        <ul>
+          {rooms.map(room => {
+            return (
+              <Link to={`/chat?name=${this.props.currentUsername}&room=${room.room}`}>
+                <li>{room.room}</li>
+              </Link>
+            );
+          })}
+        </ul>
       </div>
     )
   }

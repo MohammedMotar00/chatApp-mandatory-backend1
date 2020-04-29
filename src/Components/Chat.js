@@ -18,7 +18,8 @@ class Chat extends Component {
       removeValue: '',
       messages: [],
       room: '',
-      users: []
+      users: [],
+      currentUsername: ''
     }
   }
 
@@ -38,6 +39,8 @@ class Chat extends Component {
     const { name, room } = qs.parse(window.location.search, {
       ignoreQueryPrefix: true
     });
+
+    this.setState({ currentUsername: name });
 
     socket.emit('joinRoom', { name, room });
 
@@ -66,7 +69,7 @@ class Chat extends Component {
   }
 
   render() {
-    const { value, messages, room, users } = this.state;
+    const { value, messages, room, users, currentUsername } = this.state;
 
     return (
       <div class="chat-container">
@@ -93,7 +96,7 @@ class Chat extends Component {
 
             <h3>Available rooms:</h3>
             <p>+</p>
-            <AddRooms />
+            <AddRooms currentUsername={currentUsername} />
           </div>
 
           <div class="chat-messages">
