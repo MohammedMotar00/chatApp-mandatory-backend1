@@ -58,6 +58,11 @@ class Chat extends Component {
 
       this.setState({ messages: myMessages });
     });
+
+
+    socket.on('oldMsg', data => {
+      console.log('old messages: ', data)
+    });
   }
 
   componentDidUpdate() {

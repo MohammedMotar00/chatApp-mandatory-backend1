@@ -3,6 +3,22 @@ const http = require('http');
 const express = require('express');
 const socketIo = require('socket.io');
 
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb+srv://mohammed:mohammedmotar@chatapp-xyr0p.mongodb.net/chat?retryWrites=true&w=majority', (err) => {
+  if (err) console.log(err);
+  console.log('Connected to mongoDB')
+});
+
+let chatSchema = mongoose.Schema({
+  _id: String,
+  room: String,
+  username: String,
+  msg: String
+});
+
+let Chat = mongoose.model('Message', chatSchema);
+
 const router = require('./router');
 const formatMessage = require('./messageFormat');
 const { userJoin, getSpecificUser, userLeaveChat, getUserRoom } = require('./userInfo');
@@ -23,6 +39,12 @@ io.on('connection', socket => {
   socket.on('joinRoom', ({ name, room }) => {
     const user = userJoin(socket.id, name, room);
 
+    Chat.find({}, (err , data) => {
+      if (err) throw err;
+      console.log('sending old messages...');
+      io.to(user.room).emit('oldMsg', data);
+    });
+
     socket.join(user.room);
 
     // Welcome Curent user
@@ -36,15 +58,37 @@ io.on('connection', socket => {
       room: user.room,
       users: getUserRoom(user.room)
     });
+
+    // Listen for chat message
+    socket.on('chatMessage', (message) => {
+      const user = getSpecificUser(socket.id);
+      console.log(message)
+
+      console.log(user.room)
+
+      let newMsg = new Chat({
+        _id: socket.id,
+        room: user.room,
+        username: user.username,
+        msg: message
+      });
+
+      newMsg.save(err => {
+        if (err) console.log(`There is an error: ${err}`);
+        io.to(user.room).emit('message', formatMessage(user.username, message));
+      });
+
+      // io.to(user.room).emit('message', formatMessage(user.username, message))
+    });
   });
 
   // Listen for chat message
-  socket.on('chatMessage', (message) => {
-    const user = getSpecificUser(socket.id);
-    console.log(message)
+  // socket.on('chatMessage', (message) => {
+  //   const user = getSpecificUser(socket.id);
+  //   console.log(message)
 
-    io.to(user.room).emit('message', formatMessage(user.username, message))
-  });
+  //   io.to(user.room).emit('message', formatMessage(user.username, message))
+  // });
 
   // Listen for rooms from frontEnd
   socket.on('createdRoom', room => {
