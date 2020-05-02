@@ -39,7 +39,7 @@ io.on('connection', socket => {
   socket.on('joinRoom', ({ name, room }) => {
     const user = userJoin(socket.id, name, room);
 
-    Chat.find({}, (err , data) => {
+    Chat.find({room: user.room}, (err , data) => {
       if (err) throw err;
       console.log('sending old messages...');
       io.to(user.room).emit('oldMsg', data);

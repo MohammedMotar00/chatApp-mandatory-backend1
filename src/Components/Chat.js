@@ -19,7 +19,8 @@ class Chat extends Component {
       messages: [],
       room: '',
       users: [],
-      currentUsername: ''
+      currentUsername: '',
+      currentRoom: ''
     }
   }
 
@@ -41,6 +42,9 @@ class Chat extends Component {
     });
 
     this.setState({ currentUsername: name });
+    this.setState({ currentRoom: room });
+
+    console.log('current room: ', room)
 
     socket.emit('joinRoom', { name, room });
 
@@ -65,8 +69,14 @@ class Chat extends Component {
     });
   }
 
-  componentDidUpdate() {
-    console.log(this.state.messages)
+  componentDidUpdate(prevProps, prevState) {
+    const { name, room } = qs.parse(window.location.search, {
+      ignoreQueryPrefix: true
+    });
+    
+    if (room !== this.state.currentRoom) {
+      console.log('current room: ', room);
+    }
   }
 
   componentWillUnmount() {
