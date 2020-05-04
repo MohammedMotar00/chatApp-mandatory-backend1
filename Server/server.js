@@ -95,6 +95,12 @@ io.on('connection', socket => {
     socket.emit('getRooms', room);
   });
 
+  socket.on('userLeftRoom', data => {
+    const user = userLeaveChat(socket.id);
+
+    io.to(user.room).emit('message', formatMessage(botName, `${user.username} has left the chat!`))
+  });
+
   // Runs when client disconnects
   socket.on('disconnect', () => {
     const user = userLeaveChat(socket.id);

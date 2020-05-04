@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import io from 'socket.io-client';
-import { Link } from 'react-router-dom';
+import qs from 'query-string';
+import { Redirect } from 'react-router-dom';
 
 const socket = io('localhost:8000');
 
@@ -11,7 +12,8 @@ class AddRooms extends Component {
     this.state = {
       removeText: '',
       text: '',
-      rooms: []
+      rooms: [],
+      joinRoom: false
     }
   }
 
@@ -29,6 +31,12 @@ class AddRooms extends Component {
   };
 
   componentDidMount() {
+    const { name, room } = qs.parse(window.location.search, {
+      ignoreQueryPrefix: true
+    });
+
+    console.log('updated room: ', room);
+
     // Listening for rooms from server!
     socket.on('getRooms', rooms => {
       let newRoom = {room: rooms};
@@ -44,8 +52,12 @@ class AddRooms extends Component {
     console.log('rooms', this.state.rooms);
   };
 
+  joinRoom = () => {
+    this.setState({ joinRoom: true });
+  };
+
   render() {
-    const { text, rooms } = this.state;
+    const { text, rooms, joinRoom } = this.state;
 
     return (
       <div>
@@ -58,11 +70,14 @@ class AddRooms extends Component {
           <button type="submit">Add room</button>
         </form>
         <ul>
+          <h3>Available rooms:</h3>
           {rooms.map(room => {
+            if (joinRoom) return <Redirect to={`/chat?name=${this.props.currentUsername}&room=${room.room}`} />
             return (
-              <Link to={`/chat?name=${this.props.currentUsername}&room=${room.room}`}>
-                <li>{room.room}</li>
-              </Link>
+              // <Link to={`/chat?name=${this.props.currentUsername}&room=${room.room}`}>
+              //   <li>{room.room}</li>
+              // </Link>
+              <li onClick={this.joinRoom}>{room.room}</li>
             );
           })}
         </ul>

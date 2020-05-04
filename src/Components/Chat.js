@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
 import io from 'socket.io-client';
 import qs from 'query-string';
 
@@ -20,7 +20,9 @@ class Chat extends Component {
       room: '',
       users: [],
       currentUsername: '',
-      currentRoom: ''
+      currentRoom: '',
+
+      roomLeaved: false
     }
   }
 
@@ -41,10 +43,14 @@ class Chat extends Component {
       ignoreQueryPrefix: true
     });
 
+    console.log('updated room: ', room)
+
     this.setState({ currentUsername: name });
     this.setState({ currentRoom: room });
+    this.setState({ room: room });
 
-    console.log('current room: ', room)
+    console.log('current room: ', this.state.room)
+    // console.log('current room: ', room)
 
     socket.emit('joinRoom', { name, room });
 
@@ -55,7 +61,7 @@ class Chat extends Component {
     });
 
     socket.on('message', message => {
-      console.log(message);
+      console.log('msg: ', message);
 
       let myMessages = this.state.messages;
       myMessages.push(message);
@@ -69,30 +75,55 @@ class Chat extends Component {
     });
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  leaveRoom = () => {
     const { name, room } = qs.parse(window.location.search, {
       ignoreQueryPrefix: true
     });
+
+    this.setState({ roomLeaved: true });
+
+    socket.emit('userLeftRoom', `${name} has left the room!`);
+    socket.off();
+  };
+
+  // componentDidUpdate(prevProps, prevState) {
+  //   const { name, room } = qs.parse(window.location.search, {
+  //     ignoreQueryPrefix: true
+  //   });
     
-    if (room !== this.state.currentRoom) {
-      console.log('current room: ', room);
-    }
-  }
+  //   // if (room)
+  //   console.log('room name: ',room)
+
+  //   if (room !== prevState.currentRoom) {
+  //     if (room) {
+  //       // socket.emit('joinRoom', { name, room });
+  //     }
+  //   }
+  // }
 
   componentWillUnmount() {
+    const { name, room } = qs.parse(window.location.search, {
+      ignoreQueryPrefix: true
+    });
+
+    // socket.emit('leaveRoom')
     socket.off();
+    console.log('updated room: ', 'room leaved')
   }
 
   render() {
-    const { value, messages, room, users, currentUsername } = this.state;
+    const { value, messages, room, users, currentUsername, roomLeaved } = this.state;
+
+    if (roomLeaved) return <Redirect to="/" />
 
     return (
       <div class="chat-container">
         <header class="chat-header">
           <h1><i class="fas fa-smile"></i> Motar ChatApp</h1>
-          <Link to="/">
+          {/* <Link to="/">
             <p class="btn">Leave Room</p>
-          </Link>
+          </Link> */}
+          <p onClick={this.leaveRoom} class="btn">Leave Room</p>
         </header>
 
         <main class="chat-main">
@@ -109,7 +140,7 @@ class Chat extends Component {
               })}
             </ul>
 
-            <h3>Available rooms:</h3>
+            {/* <h3>Available rooms:</h3> */}
             <p>+</p>
             <AddRooms currentUsername={currentUsername} />
           </div>

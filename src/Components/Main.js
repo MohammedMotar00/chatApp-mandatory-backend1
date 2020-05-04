@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
 import './Style.css'
 
@@ -8,7 +8,8 @@ class Main extends Component {
     super(props)
   
     this.state = {
-      username: ''
+      username: '',
+      joinChat: false
     }
   }
 
@@ -16,8 +17,14 @@ class Main extends Component {
     this.setState({ username: e.target.value });
   };
 
+  joinChat = () => {
+    this.setState({ joinChat: true });
+  };
+
   render() {
-    const { username } = this.state;
+    const { username, joinChat } = this.state;
+
+    if (joinChat) return <Redirect to={`/chat?name=${username}&room=ec`} />
 
     return (
       <div className="join-container">
@@ -38,9 +45,10 @@ class Main extends Component {
                 required
               />
             </div>
-            <Link to={`/chat?name=${username}&room=ec`}>
+            {/* <Link to={`/chat?name=${username}&room=ec`}>
               <button type="submit" class="btn">Join Chat</button>
-            </Link>
+            </Link> */}
+            <button onClick={this.joinChat} type="submit" class="btn">Join Chat</button>
           </form>
         </main>
 		</div>
