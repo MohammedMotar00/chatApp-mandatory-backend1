@@ -12,6 +12,7 @@ function App() {
       <Router>
         <Route exact path="/" component={Main} />
         <Route path="/chat" component={Chat} />
+        <Route path="/chat/:path+" component={Chat} />
       </Router>
     </div>
   );

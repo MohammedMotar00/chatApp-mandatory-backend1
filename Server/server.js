@@ -17,6 +17,13 @@ let chatSchema = mongoose.Schema({
   msg: String
 });
 
+let roomSchema = mongoose.Schema({
+  _id: String,
+  createdRoom: String
+});
+
+let CreatedRoom = mongoose.model('createdRoom', roomSchema);
+
 let Chat = mongoose.model('Message', chatSchema);
 
 const router = require('./router');
@@ -39,10 +46,16 @@ io.on('connection', socket => {
   socket.on('joinRoom', ({ name, room }) => {
     const user = userJoin(socket.id, name, room);
 
-    Chat.find({room: user.room}, (err , data) => {
+    Chat.find({room: room}, (err , data) => {
       if (err) throw err;
       console.log('sending old messages...');
       io.to(user.room).emit('oldMsg', data);
+    });
+
+    CreatedRoom.find({}, (err, data) => {
+      if (err) throw err;
+      console.log('sending created rooms');
+      socket.broadcast.emit('alreadyCreatedRooms', data);
     });
 
     socket.join(user.room);
@@ -60,22 +73,21 @@ io.on('connection', socket => {
     });
 
     // Listen for chat message
-    socket.on('chatMessage', (message) => {
+    socket.on('chatMessage', (message, room) => {
       const user = getSpecificUser(socket.id);
-      console.log(message)
-
-      console.log(user.room)
+      console.log(room, message)
 
       let newMsg = new Chat({
         _id: socket.id,
-        room: user.room,
+        room: room,
         username: user.username,
         msg: message
       });
 
       newMsg.save(err => {
         if (err) console.log(`There is an error: ${err}`);
-        io.to(user.room).emit('message', formatMessage(user.username, message));
+        // io.to(user.room).emit('message', formatMessage(user.username, message));
+        io.to(room).emit('message', formatMessage(user.username, message));
       });
 
       // io.to(user.room).emit('message', formatMessage(user.username, message))
@@ -92,8 +104,30 @@ io.on('connection', socket => {
 
   // Listen for rooms from frontEnd
   socket.on('createdRoom', room => {
-    socket.emit('getRooms', room);
+    console.log(room)
+    let newRoom = new CreatedRoom({
+      _id: socket.id,
+      createdRoom: room
+    });
+
+    newRoom.save(err => {
+      if (err) console.log(`Can't save created room to DB: ${err}`);
+      socket.broadcast.emit('getRooms', room);
+    });
   });
+
+  // delete rooms
+  socket.on('deleteRoom', id => {
+    // console.log(id)
+    CreatedRoom.findByIdAndDelete(id, err => {
+      if (err) console.log(`Could not delete room: ${err}`);
+      console.log('Room deleted Successfully');
+    });
+
+    Chat.findByIdAndDelete(id, err => {
+
+    });
+  })
 
   socket.on('userLeftRoom', data => {
     const user = userLeaveChat(socket.id);

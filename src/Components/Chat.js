@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link, Redirect } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 import io from 'socket.io-client';
 import qs from 'query-string';
 
@@ -28,14 +28,21 @@ class Chat extends Component {
 
   updateValue = (e) => {
     this.setState({ value: e.target.value });
+    console.log('ecc', e.target.value)
   };
 
   submitForm = (e) => {
     e.preventDefault();
     this.setState({ removeValue: this.state.value, value: '' });
 
+    const { name, room } = qs.parse(window.location.search, {
+      ignoreQueryPrefix: true
+    });
+
+    console.log('vilket rum: ', room)
+
     // Emit message to server
-    socket.emit('chatMessage', this.state.value);
+    socket.emit('chatMessage', this.state.value, room);
   };
 
   componentDidMount() {
@@ -76,7 +83,7 @@ class Chat extends Component {
   }
 
   leaveRoom = () => {
-    const { name, room } = qs.parse(window.location.search, {
+    const { name } = qs.parse(window.location.search, {
       ignoreQueryPrefix: true
     });
 
@@ -86,20 +93,17 @@ class Chat extends Component {
     socket.off();
   };
 
-  // componentDidUpdate(prevProps, prevState) {
-  //   const { name, room } = qs.parse(window.location.search, {
-  //     ignoreQueryPrefix: true
-  //   });
-    
-  //   // if (room)
-  //   console.log('room name: ',room)
-
-  //   if (room !== prevState.currentRoom) {
-  //     if (room) {
-  //       // socket.emit('joinRoom', { name, room });
-  //     }
-  //   }
-  // }
+  componentDidUpdate(prevProps, prevState) {
+      if (prevState.room !== this.state.room) {
+      const { name, room } = qs.parse(window.location.search, {
+        ignoreQueryPrefix: true
+      });
+      
+      // if (room)
+      console.log('room name: ',room)
+      this.setState({ currentRoom: room });
+    }
+  }
 
   componentWillUnmount() {
     const { name, room } = qs.parse(window.location.search, {
