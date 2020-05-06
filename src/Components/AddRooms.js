@@ -17,7 +17,10 @@ class AddRooms extends Component {
       joinRoomDB: false,
 
       currentRoom: '',
-      createdRooms: []
+      createdRooms: [],
+
+      msgDB: [],
+      path: ''
     }
   }
 
@@ -47,6 +50,11 @@ class AddRooms extends Component {
     console.log('cRoom: ', roomObj);
 
     this.setState({ removeText: this.state.text, text: '' });
+
+    // socket.on('getRooms', rooms => {
+    //   console.log('createdRooms: ', rooms);
+    //   // this.setState({ createdRooms: rooms });
+    // });
   };
 
   componentDidMount() {
@@ -56,11 +64,13 @@ class AddRooms extends Component {
 
     console.log('updated room: ', room);
 
-    console.log('room name: ',this.state.currentRoom)
-
     this.setState({ currentRoom: room });
 
-    // Listening for rooms from server!
+    socket.on('oldMsg', data => {
+      console.log('old messages: ', data)
+    });
+
+    // // Listening for rooms from server!
     // socket.on('getRooms', rooms => {
     //   let newRoom = {room: rooms};
 
@@ -79,34 +89,64 @@ class AddRooms extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-  //   const { name, room } = qs.parse(window.location.search, {
-  //     ignoreQueryPrefix: true
-  //   });
+    if (prevState.currentRoom !== this.state.currentRoom) {
 
-  //   if (room !== this.state.currentRoom) {
-  //   console.log('room name: ',room)
-  //   this.setState({ currentRoom: room });
-  // }
-
-  console.log('createdRooms: ', this.state.createdRooms);
+    }
 }
 
-  joinRoom = () => {
-    this.setState({ joinRoom: true });
+  joinRoom = (room) => {
+    console.log('rum namn qs: ', room)
+    let name = this.props.currentUsername
+    socket.emit('joinRoom', { name, room });
+
+    socket.on('oldMsg', data => {
+      console.log('this room msg: ', data)
+      this.setState({ msgDB: data });
+      this.props.DB(data)
+    });
   };
 
   joinRoomDB = (room) => {
     this.setState({ joinRoomDB: true });
     // console.log('rum namn: ', room);
 
+    this.setState({ currentRoom: room });
+
     console.log('rum namn qs: ', room)
     let name = this.props.currentUsername
     socket.emit('joinRoom', { name, room });
+
+    socket.on('oldMsg', data => {
+      console.log('this room msg: ', data)
+      this.setState({ msgDB: data });
+      this.props.DB(data)
+    });
   };
 
-  deleteRoom = (id) => {
+  defaultRoom = () => {
+    // this.setState({ currentRoom: room });
+    let name = this.props.currentUsername
+    let room = 'default';
+
+    console.log('defauult ', room);
+
+    socket.emit('joinRoom', { name, room });
+
+    socket.on('oldMsg', data => {
+      console.log('this room msg: ', data)
+      this.setState({ msgDB: data });
+      this.props.DB(data)
+    });
+  };
+
+  deleteRoom = (id, room) => {
     console.log('delete room: ', id);
-    socket.emit('deleteRoom', id);
+    socket.emit('deleteRoom', id, room);
+
+    const myRoom = [...this.state.createdRooms];
+    const removeRoom = myRoom.filter(x => x._id !== id);
+
+    this.setState({ createdRooms: removeRoom });
   };
 
   render() {
@@ -124,14 +164,29 @@ class AddRooms extends Component {
         </form>
         <ul>
           <h3>Available rooms:</h3>
+          <div>
+            <Link to={`/chat?name=${this.props.currentUsername}&room=default`}>
+              <li onClick={this.defaultRoom}>Default Room</li>
+            </Link>
+          </div>
           {createdRooms.map(rooms => {
+            console.log('rooooms: ', rooms.createdRoom)
             // if (joinRoomDB) return <Redirect to={`/chat?name=${this.props.currentUsername}&room=${rooms.createdRoom}`} />
             return (
               <div>
+                {/* pathname: "/courses",
+    search: "?sort=name", */}
                 <Link to={`/chat?name=${this.props.currentUsername}&room=${rooms.createdRoom}`}>
                   <li onClick={() => this.joinRoomDB(rooms.createdRoom)} id={rooms._id}>{rooms.createdRoom}</li>
                 </Link>
-                <button onClick={() => this.deleteRoom(rooms._id)}>Delete room</button>
+                {/* <Link to={{
+                  pathname: '/chat',
+                  // search: `?name=${this.props.currentUsername}&room=${rooms.createdRoom}`,
+                  state: {name: this.props.currentUsername, room: rooms.createdRoom}
+                }}>
+                  <li onClick={() => this.joinRoomDB(rooms.createdRoom)} id={rooms._id}>{rooms.createdRoom}</li>
+                </Link> */}
+                <button onClick={() => this.deleteRoom(rooms._id, rooms.createdRoom)}>Delete room</button>
               </div>
             );
           })}
@@ -142,7 +197,7 @@ class AddRooms extends Component {
             return (
               <div>
                 <Link to={`/chat?name=${this.props.currentUsername}&room=${room.room}`}>
-                  <li onClick={this.joinRoom}>{room.room}</li>
+                  <li onClick={() => this.joinRoom(room.room)}>{room.room}</li>
                 </Link>
                 {/* <button onClick={() => this.deleteRoom(rooms._id)}>Delete room</button> */}
               </div>

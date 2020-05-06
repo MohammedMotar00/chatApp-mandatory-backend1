@@ -24,7 +24,7 @@ class Main extends Component {
   render() {
     const { username, joinChat } = this.state;
 
-    if (joinChat) return <Redirect to={`/chat?name=${username}&room=ec`} />
+    if (joinChat) return <Redirect to={`/chat?name=${username}&room=default`} />
 
     return (
       <div className="join-container">

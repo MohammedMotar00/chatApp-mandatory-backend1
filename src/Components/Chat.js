@@ -22,7 +22,10 @@ class Chat extends Component {
       currentUsername: '',
       currentRoom: '',
 
-      roomLeaved: false
+      roomLeaved: false,
+      messagesDB: [],
+      msgDB: [],
+      path: ''
     }
   }
 
@@ -40,6 +43,8 @@ class Chat extends Component {
     });
 
     console.log('vilket rum: ', room)
+    console.log('vilket rum: ', window.location.href)
+    this.setState({ path: window.location.href });
 
     // Emit message to server
     socket.emit('chatMessage', this.state.value, room);
@@ -57,7 +62,7 @@ class Chat extends Component {
     this.setState({ room: room });
 
     console.log('current room: ', this.state.room)
-    // console.log('current room: ', room)
+    console.log('current room: ', room)
 
     socket.emit('joinRoom', { name, room });
 
@@ -79,18 +84,19 @@ class Chat extends Component {
 
     socket.on('oldMsg', data => {
       console.log('old messages: ', data)
+      this.setState({ messagesDB: data });
     });
   }
 
   leaveRoom = () => {
-    const { name } = qs.parse(window.location.search, {
+    const { name, room } = qs.parse(window.location.search, {
       ignoreQueryPrefix: true
     });
 
     this.setState({ roomLeaved: true });
 
-    socket.emit('userLeftRoom', `${name} has left the room!`);
-    socket.off();
+    socket.emit('userLeftRoom', {name, room});
+    socket.removeAllListeners('joinRoom')
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -103,6 +109,8 @@ class Chat extends Component {
       console.log('room name: ',room)
       this.setState({ currentRoom: room });
     }
+
+    console.log('this room: ', this.state.DB);
   }
 
   componentWillUnmount() {
@@ -115,8 +123,15 @@ class Chat extends Component {
     console.log('updated room: ', 'room leaved')
   }
 
+  DB = (msg) => {
+    console.log('DB msg: ', msg);
+    this.setState({ msgDB: msg });
+    this.setState({ messagesDB: [] });
+    this.setState({ messages: [] });
+  };
+
   render() {
-    const { value, messages, room, users, currentUsername, roomLeaved } = this.state;
+    const { value, messages, room, users, currentUsername, roomLeaved, messagesDB, msgDB } = this.state;
 
     if (roomLeaved) return <Redirect to="/" />
 
@@ -146,10 +161,30 @@ class Chat extends Component {
 
             {/* <h3>Available rooms:</h3> */}
             <p>+</p>
-            <AddRooms currentUsername={currentUsername} />
+            <AddRooms currentUsername={currentUsername} DB={this.DB} />
           </div>
 
           <div class="chat-messages">
+            {/* när jag klickar på rummet */}
+            {msgDB.map(message => {
+              return (
+                <div className="message">
+                  <p className="meta"> {message.username} <span>{message.time}</span></p>
+                  <p className="text">{message.msg}</p>
+                </div>
+              );
+            })}
+
+            {/* funkar när sidan refreshar! */}
+            {messagesDB.map(message => {
+              return (
+                <div className="message">
+                  <p className="meta"> {message.username} <span>{message.time}</span></p>
+                  <p className="text">{message.msg}</p>
+                </div>
+              );
+            })}
+
             {messages.map(message => {
               return (
                 <div className="message">

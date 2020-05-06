@@ -14,7 +14,8 @@ let chatSchema = mongoose.Schema({
   _id: String,
   room: String,
   username: String,
-  msg: String
+  msg: String,
+  msgTime: String
 });
 
 let roomSchema = mongoose.Schema({
@@ -46,6 +47,13 @@ io.on('connection', socket => {
   socket.on('joinRoom', ({ name, room }) => {
     const user = userJoin(socket.id, name, room);
 
+    // if (room === undefined) {
+    //   room = 'default'
+    // }
+
+    console.log(room)
+    console.log(user.room)
+
     Chat.find({room: room}, (err , data) => {
       if (err) throw err;
       console.log('sending old messages...');
@@ -72,26 +80,26 @@ io.on('connection', socket => {
       users: getUserRoom(user.room)
     });
 
-    // Listen for chat message
-    socket.on('chatMessage', (message, room) => {
-      const user = getSpecificUser(socket.id);
-      console.log(room, message)
+  // Listen for chat message
+  socket.on('chatMessage', (message, room) => {
+    const user = getSpecificUser(socket.id);
+    console.log(room, message)
 
-      let newMsg = new Chat({
-        _id: socket.id,
-        room: room,
-        username: user.username,
-        msg: message
-      });
-
-      newMsg.save(err => {
-        if (err) console.log(`There is an error: ${err}`);
-        // io.to(user.room).emit('message', formatMessage(user.username, message));
-        io.to(room).emit('message', formatMessage(user.username, message));
-      });
-
-      // io.to(user.room).emit('message', formatMessage(user.username, message))
+    let newMsg = new Chat({
+      _id: socket.id,
+      room: room,
+      username: user.username,
+      msg: message
     });
+
+    newMsg.save(err => {
+      if (err) console.log(`There is an error: ${err}`);
+      // io.to(user.room).emit('message', formatMessage(user.username, message));
+      io.to(user.room).emit('message', formatMessage(user.username, message));
+    });
+
+    // io.to(user.room).emit('message', formatMessage(user.username, message))
+  });
   });
 
   // Listen for chat message
@@ -112,20 +120,21 @@ io.on('connection', socket => {
 
     newRoom.save(err => {
       if (err) console.log(`Can't save created room to DB: ${err}`);
-      socket.broadcast.emit('getRooms', room);
+      socket.emit('getRooms', room);
     });
   });
 
   // delete rooms
-  socket.on('deleteRoom', id => {
-    // console.log(id)
+  socket.on('deleteRoom', (id, room) => {
+    console.log(room)
     CreatedRoom.findByIdAndDelete(id, err => {
       if (err) console.log(`Could not delete room: ${err}`);
       console.log('Room deleted Successfully');
     });
 
-    Chat.findByIdAndDelete(id, err => {
-
+    Chat.deleteMany({room: room}, err => {
+      if (err) console.log(`Could not delete room: ${err}`);
+      console.log('Room and messages deleted Successfully');
     });
   })
 
