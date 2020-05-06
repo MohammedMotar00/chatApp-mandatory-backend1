@@ -34,9 +34,6 @@ const { userJoin, getSpecificUser, userLeaveChat, getUserRoom } = require('./use
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
-
-// Set static folder
-// app.use(express.static(path.join(__dirname, '../src')));
 app.use(router);
 
 const botName = 'chatCord bot';
