@@ -25,7 +25,9 @@ class Chat extends Component {
       roomLeaved: false,
       messagesDB: [],
       msgDB: [],
-      path: ''
+      path: '',
+
+      welcomeToChat: {}
     }
   }
 
@@ -72,6 +74,11 @@ class Chat extends Component {
       this.setState({ users: users });
     });
 
+    socket.on('welcomeMsg', msg => {
+      console.log('welcome: ', msg);
+      this.setState({ welcomeToChat: msg });
+    });
+
     socket.on('message', message => {
       console.log('msg: ', message);
 
@@ -111,6 +118,7 @@ class Chat extends Component {
     }
 
     console.log('this room: ', this.state.DB);
+    console.log('welcome: ', this.state.welcomeToChat);
   }
 
   componentWillUnmount() {
@@ -131,7 +139,7 @@ class Chat extends Component {
   };
 
   render() {
-    const { value, messages, room, users, currentUsername, roomLeaved, messagesDB, msgDB } = this.state;
+    const { value, messages, room, users, currentUsername, roomLeaved, messagesDB, msgDB, welcomeToChat } = this.state;
 
     if (roomLeaved) return <Redirect to="/" />
 
@@ -165,6 +173,11 @@ class Chat extends Component {
           </div>
 
           <div class="chat-messages">
+            {/* Welcome to chat app */}
+            <div className="message">
+              <p className="meta"> {welcomeToChat.username} <span>{welcomeToChat.time}</span> </p>
+            </div>
+
             {/* när jag klickar på rummet */}
             {msgDB.map(message => {
               return (

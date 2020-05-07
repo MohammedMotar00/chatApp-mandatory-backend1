@@ -39,6 +39,7 @@ class AddRooms extends Component {
     console.log('cRoom: ', this.state.text);
 
     let roomObj = {
+      id: Math.random().toString(36).substr(2, 9),
       room: text
     }
 
@@ -139,14 +140,24 @@ class AddRooms extends Component {
     });
   };
 
-  deleteRoom = (id, room) => {
+  deleteRoomDB = (id, room) => {
     console.log('delete room: ', id);
-    socket.emit('deleteRoom', id, room);
+    socket.emit('deleteRoomDB', id, room);
 
     const myRoom = [...this.state.createdRooms];
     const removeRoom = myRoom.filter(x => x._id !== id);
 
     this.setState({ createdRooms: removeRoom });
+  };
+
+  deleteRoom = (id, room) => {
+    console.log('delete room: ', id, room);
+    socket.emit('deleteRoom', room);
+
+    const myRoom = [...this.state.rooms];
+    const removeRoom = myRoom.filter(x => x.id !== id);
+
+    this.setState({ rooms: removeRoom });
   };
 
   render() {
@@ -171,22 +182,12 @@ class AddRooms extends Component {
           </div>
           {createdRooms.map(rooms => {
             console.log('rooooms: ', rooms.createdRoom)
-            // if (joinRoomDB) return <Redirect to={`/chat?name=${this.props.currentUsername}&room=${rooms.createdRoom}`} />
             return (
               <div>
-                {/* pathname: "/courses",
-    search: "?sort=name", */}
                 <Link to={`/chat?name=${this.props.currentUsername}&room=${rooms.createdRoom}`}>
                   <li onClick={() => this.joinRoomDB(rooms.createdRoom)} id={rooms._id}>{rooms.createdRoom}</li>
                 </Link>
-                {/* <Link to={{
-                  pathname: '/chat',
-                  // search: `?name=${this.props.currentUsername}&room=${rooms.createdRoom}`,
-                  state: {name: this.props.currentUsername, room: rooms.createdRoom}
-                }}>
-                  <li onClick={() => this.joinRoomDB(rooms.createdRoom)} id={rooms._id}>{rooms.createdRoom}</li>
-                </Link> */}
-                <button onClick={() => this.deleteRoom(rooms._id, rooms.createdRoom)}>Delete room</button>
+                <button onClick={() => this.deleteRoomDB(rooms._id, rooms.createdRoom)}>Delete room</button>
               </div>
             );
           })}
@@ -199,7 +200,7 @@ class AddRooms extends Component {
                 <Link to={`/chat?name=${this.props.currentUsername}&room=${room.room}`}>
                   <li onClick={() => this.joinRoom(room.room)}>{room.room}</li>
                 </Link>
-                {/* <button onClick={() => this.deleteRoom(rooms._id)}>Delete room</button> */}
+                <button onClick={() => this.deleteRoom(room.id, room.room)}>Delete room</button>
               </div>
             );
           })}

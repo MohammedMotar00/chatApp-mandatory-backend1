@@ -122,9 +122,22 @@ io.on('connection', socket => {
   });
 
   // delete rooms
-  socket.on('deleteRoom', (id, room) => {
+  socket.on('deleteRoomDB', (id, room) => {
     console.log(room)
     CreatedRoom.findByIdAndDelete(id, err => {
+      if (err) console.log(`Could not delete room: ${err}`);
+      console.log('Room deleted Successfully');
+    });
+
+    Chat.deleteMany({room: room}, err => {
+      if (err) console.log(`Could not delete room: ${err}`);
+      console.log('Room and messages deleted Successfully');
+    });
+  })
+
+  socket.on('deleteRoom', (room) => {
+    console.log(room)
+    CreatedRoom.deleteMany({createdRoom: room}, err => {
       if (err) console.log(`Could not delete room: ${err}`);
       console.log('Room deleted Successfully');
     });

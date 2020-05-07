@@ -4,7 +4,7 @@ const messageFormat = (username, message) => {
   return {
     username,
     message,
-    time: moment().format('h:m a')
+    time: moment().format('LLLL')
   };
 };
 
