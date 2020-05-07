@@ -27,13 +27,13 @@ class Main extends Component {
     if (joinChat) return <Redirect to={`/chat?name=${username}&room=default`} />
 
     return (
-      <div className="join-container">
-        <header className="join-header">
-          <h1><i className="fas fa-smile"></i> Motar ChatApp</h1>
+      <div className="join__container">
+        <header className="join__header">
+          <h1>Motar ChatApp</h1>
         </header>
-        <main className="join-main">
+        <main className="join__main">
           <form>
-            <div className="form-control">
+            <div className="form__control">
               <label htmlFor="username">Username</label>
               <input
                 type="text"
@@ -45,10 +45,7 @@ class Main extends Component {
                 required
               />
             </div>
-            {/* <Link to={`/chat?name=${username}&room=ec`}>
-              <button type="submit" class="btn">Join Chat</button>
-            </Link> */}
-            <button onClick={this.joinChat} type="submit" class="btn">Join Chat</button>
+            <button onClick={this.joinChat} type="submit" className="btn">Join Chat</button>
           </form>
         </main>
 		</div>

@@ -17,7 +17,6 @@ class Chat extends Component {
       value: '',
       removeValue: '',
       messages: [],
-      room: '',
       users: [],
       currentUsername: '',
       currentRoom: '',
@@ -25,7 +24,6 @@ class Chat extends Component {
       roomLeaved: false,
       messagesDB: [],
       msgDB: [],
-      path: '',
 
       welcomeToChat: {}
     }
@@ -44,10 +42,6 @@ class Chat extends Component {
       ignoreQueryPrefix: true
     });
 
-    console.log('vilket rum: ', room)
-    console.log('vilket rum: ', window.location.href)
-    this.setState({ path: window.location.href });
-
     // Emit message to server
     socket.emit('chatMessage', this.state.value, room);
   };
@@ -57,40 +51,28 @@ class Chat extends Component {
       ignoreQueryPrefix: true
     });
 
-    console.log('updated room: ', room)
-
     this.setState({ currentUsername: name });
     this.setState({ currentRoom: room });
-    this.setState({ room: room });
-
-    console.log('current room: ', this.state.room)
-    console.log('current room: ', room)
 
     socket.emit('joinRoom', { name, room });
 
-    // Get room  and users
+    // Hämtar rum och användar info från socket
     socket.on('roomUsers', ({ room, users }) => {
-      this.setState({ room: room });
       this.setState({ users: users });
     });
 
     socket.on('welcomeMsg', msg => {
-      console.log('welcome: ', msg);
       this.setState({ welcomeToChat: msg });
     });
 
     socket.on('message', message => {
-      console.log('msg: ', message);
-
       let myMessages = this.state.messages;
       myMessages.push(message);
 
       this.setState({ messages: myMessages });
     });
 
-
     socket.on('oldMsg', data => {
-      console.log('old messages: ', data)
       this.setState({ messagesDB: data });
     });
   }
@@ -105,21 +87,6 @@ class Chat extends Component {
     socket.emit('userLeftRoom', {name, room});
     socket.removeAllListeners('joinRoom')
   };
-
-  componentDidUpdate(prevProps, prevState) {
-      if (prevState.room !== this.state.room) {
-      const { name, room } = qs.parse(window.location.search, {
-        ignoreQueryPrefix: true
-      });
-      
-      // if (room)
-      console.log('room name: ',room)
-      this.setState({ currentRoom: room });
-    }
-
-    console.log('this room: ', this.state.DB);
-    console.log('welcome: ', this.state.welcomeToChat);
-  }
 
   componentWillUnmount() {
     const { name, room } = qs.parse(window.location.search, {
@@ -138,27 +105,28 @@ class Chat extends Component {
     this.setState({ messages: [] });
   };
 
+  updatedRoomName = (roomName) => {
+    this.setState({ currentRoom: roomName });
+  };
+
   render() {
-    const { value, messages, room, users, currentUsername, roomLeaved, messagesDB, msgDB, welcomeToChat } = this.state;
+    const { value, messages, users, currentUsername, roomLeaved, messagesDB, msgDB, welcomeToChat, currentRoom } = this.state;
 
     if (roomLeaved) return <Redirect to="/" />
 
     return (
-      <div class="chat-container">
-        <header class="chat-header">
-          <h1><i class="fas fa-smile"></i> Motar ChatApp</h1>
-          {/* <Link to="/">
-            <p class="btn">Leave Room</p>
-          </Link> */}
-          <p onClick={this.leaveRoom} class="btn">Leave Room</p>
+      <div className="chatApp__container">
+        <header className="chatApp__header">
+          <h1>Motar ChatApp</h1>
+          <p onClick={this.leaveRoom} className="btn">Leave Room</p>
         </header>
 
-        <main class="chat-main">
-          <div class="chat-sidebar">
-            <h3><i class="fas fa-comments"></i> Room Name:</h3>
-            <h2 id="room-name">{room}</h2>
+        <main className="chatApp__main">
+          <div className="chatApp__sidebar">
+            <h3>Room Name:</h3>
+            <h2 id="room__name">{currentRoom}</h2>
 
-            <h3><i class="fas fa-users"></i> Users:</h3>
+            <h3>Users:</h3>
             <ul id="users">
               {users.map(user => {
                 return (
@@ -169,10 +137,10 @@ class Chat extends Component {
 
             {/* <h3>Available rooms:</h3> */}
             <p>+</p>
-            <AddRooms currentUsername={currentUsername} DB={this.DB} />
+            <AddRooms currentUsername={currentUsername} DB={this.DB} updatedRoomName={this.updatedRoomName} />
           </div>
 
-          <div class="chat-messages">
+          <div className="chatApp__messages">
             {/* Welcome to chat app */}
             <div className="message">
               <p className="meta"> {welcomeToChat.username} <span>{welcomeToChat.time}</span> </p>
@@ -212,8 +180,8 @@ class Chat extends Component {
           </div>
         </main>
 
-        <div class="chat-form-container">
-          <form onSubmit={this.submitForm.bind(this)} id="chat-form">
+        <div className="chatApp__form__container">
+          <form onSubmit={this.submitForm.bind(this)} className="chatApp__form">
             <input
               id="msg"
               value={value}
@@ -223,7 +191,7 @@ class Chat extends Component {
               required
               autocomplete="off"
             />
-            <button class="btn"><i class="fas fa-paper-plane"></i> Send</button>
+            <button>Send</button>
           </form>
         </div>
       </div>

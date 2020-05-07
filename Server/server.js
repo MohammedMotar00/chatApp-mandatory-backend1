@@ -38,17 +38,13 @@ const server = http.createServer(app);
 const io = socketIo(server);
 app.use(router);
 
-const botName = 'chatCord bot';
+const admin = 'Motar ChatApp';
 
 // Run when a client connects
 io.on('connection', socket => {
   // fångar namnet och rummet för min användare som jag har skickat från frontend hit!
   socket.on('joinRoom', ({ name, room }) => {
     const user = userJoin(socket.id, name, room);
-
-    // if (room === undefined) {
-    //   room = 'default'
-    // }
 
     console.log(room)
     console.log(user.room)
@@ -67,20 +63,19 @@ io.on('connection', socket => {
 
     socket.join(user.room);
 
-    // Welcome Curent user
-    // socket.emit('message', formatMessage(botName, 'welcome to chat app!'));
+    // Välkomnar Curent user
     socket.emit('welcomeMsg', formatMessage(`welcome to chat app ${user.username}!`));
 
-    // Broadcast when user connects
-    socket.broadcast.to(user.room).emit('message', formatMessage(botName, `${user.username} has joined the chat!`));
+    // Broadcastar när användare joinar
+    socket.broadcast.to(user.room).emit('message', formatMessage(admin, `${user.username} has joined the chat!`));
 
-    // Send users and room info
+    // Skickar rum och användar info
     io.to(user.room).emit('roomUsers', {
       room: user.room,
       users: getUserRoom(user.room)
     });
 
-  // Listen for chat message
+  // Lyssnar för chat meddelanden
   socket.on('chatMessage', (message, room) => {
     const user = getSpecificUser(socket.id);
     console.log(room, message)
@@ -95,23 +90,12 @@ io.on('connection', socket => {
 
     newMsg.save(err => {
       if (err) console.log(`There is an error: ${err}`);
-      // io.to(user.room).emit('message', formatMessage(user.username, message));
       io.to(user.room).emit('message', formatMessage(user.username, message));
     });
-
-    // io.to(user.room).emit('message', formatMessage(user.username, message))
   });
   });
 
-  // Listen for chat message
-  // socket.on('chatMessage', (message) => {
-  //   const user = getSpecificUser(socket.id);
-  //   console.log(message)
-
-  //   io.to(user.room).emit('message', formatMessage(user.username, message))
-  // });
-
-  // Listen for rooms from frontEnd
+  // Lyssnar för rooms från frontEnd
   socket.on('createdRoom', room => {
     console.log(room)
     let newRoom = new CreatedRoom({
@@ -125,7 +109,7 @@ io.on('connection', socket => {
     });
   });
 
-  // delete rooms
+  // Tar bort rum som är sparade i DB
   socket.on('deleteRoomDB', (id, room) => {
     console.log(room)
     CreatedRoom.findByIdAndDelete(id, err => {
@@ -139,6 +123,7 @@ io.on('connection', socket => {
     });
   })
 
+  // Tar bort rum som skapades direkt o tas bort
   socket.on('deleteRoom', (room) => {
     console.log(room)
     CreatedRoom.deleteMany({createdRoom: room}, err => {
@@ -155,7 +140,7 @@ io.on('connection', socket => {
   socket.on('userLeftRoom', data => {
     const user = userLeaveChat(socket.id);
 
-    io.to(user.room).emit('message', formatMessage(botName, `${user.username} has left the chat!`))
+    io.to(user.room).emit('message', formatMessage(admin, `${user.username} has left the chat!`))
   });
 
   // Runs when client disconnects
@@ -164,9 +149,9 @@ io.on('connection', socket => {
 
     if (user) {
       // io.emit() gör så att alla får meddelandet, jag vill göra så för att nnär jag disconnectar så vill jag att alla ska veta det!
-      io.to(user.room).emit('message', formatMessage(botName, `${user.username} has left the chat!`))
+      io.to(user.room).emit('message', formatMessage(admin, `${user.username} has left the chat!`))
 
-      // Send users and room info
+      // Skickar rum och användar info
       io.to(user.room).emit('roomUsers', {
         room: user.room,
         users: getUserRoom(user.room)
