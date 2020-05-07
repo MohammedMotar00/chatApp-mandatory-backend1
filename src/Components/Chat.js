@@ -31,7 +31,6 @@ class Chat extends Component {
 
   updateValue = (e) => {
     this.setState({ value: e.target.value });
-    console.log('ecc', e.target.value)
   };
 
   submitForm = (e) => {
@@ -85,7 +84,7 @@ class Chat extends Component {
     this.setState({ roomLeaved: true });
 
     socket.emit('userLeftRoom', {name, room});
-    socket.removeAllListeners('joinRoom')
+    socket.removeAllListeners('joinRoom');
   };
 
   componentWillUnmount() {
