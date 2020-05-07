@@ -13,8 +13,6 @@ class AddRooms extends Component {
       removeText: '',
       text: '',
       rooms: [],
-      joinRoom: false,
-      joinRoomDB: false,
 
       currentRoom: '',
       createdRooms: [],
@@ -108,7 +106,6 @@ class AddRooms extends Component {
   };
 
   joinRoomDB = (room) => {
-    this.setState({ joinRoomDB: true });
     // console.log('rum namn: ', room);
 
     this.setState({ currentRoom: room });
@@ -161,7 +158,7 @@ class AddRooms extends Component {
   };
 
   render() {
-    const { text, rooms, joinRoom, joinRoomDB, createdRooms } = this.state;
+    const { text, rooms, createdRooms } = this.state;
 
     return (
       <div>
@@ -193,7 +190,6 @@ class AddRooms extends Component {
           })}
 
           {rooms.map(room => {
-            // if (joinRoom) return <Redirect to={`/chat?name=${this.props.currentUsername}&room=${room.room}`} />
             console.log('checkroom: ', room);
             return (
               <div>

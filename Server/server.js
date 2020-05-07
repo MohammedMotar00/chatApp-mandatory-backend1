@@ -3,6 +3,8 @@ const http = require('http');
 const express = require('express');
 const socketIo = require('socket.io');
 
+const moment = require('moment');
+
 const mongoose = require('mongoose');
 
 mongoose.connect('mongodb+srv://mohammed:mohammedmotar@chatapp-xyr0p.mongodb.net/chat?retryWrites=true&w=majority', (err) => {
@@ -15,7 +17,7 @@ let chatSchema = mongoose.Schema({
   room: String,
   username: String,
   msg: String,
-  msgTime: String
+  time: String
 });
 
 let roomSchema = mongoose.Schema({
@@ -66,7 +68,8 @@ io.on('connection', socket => {
     socket.join(user.room);
 
     // Welcome Curent user
-    socket.emit('message', formatMessage(botName, 'welcome to chat app!'));
+    // socket.emit('message', formatMessage(botName, 'welcome to chat app!'));
+    socket.emit('welcomeMsg', formatMessage(`welcome to chat app ${user.username}!`));
 
     // Broadcast when user connects
     socket.broadcast.to(user.room).emit('message', formatMessage(botName, `${user.username} has joined the chat!`));
@@ -86,7 +89,8 @@ io.on('connection', socket => {
       _id: socket.id,
       room: room,
       username: user.username,
-      msg: message
+      msg: message,
+      time: moment().format('LLLL')
     });
 
     newMsg.save(err => {

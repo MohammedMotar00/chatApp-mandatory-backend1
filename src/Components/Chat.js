@@ -180,6 +180,7 @@ class Chat extends Component {
 
             {/* när jag klickar på rummet */}
             {msgDB.map(message => {
+              console.log('kung: ', message);
               return (
                 <div className="message">
                   <p className="meta"> {message.username} <span>{message.time}</span></p>
@@ -190,6 +191,7 @@ class Chat extends Component {
 
             {/* funkar när sidan refreshar! */}
             {messagesDB.map(message => {
+              console.log('kung: ', message);
               return (
                 <div className="message">
                   <p className="meta"> {message.username} <span>{message.time}</span></p>
@@ -199,6 +201,7 @@ class Chat extends Component {
             })}
 
             {messages.map(message => {
+              console.log('kung: ', message);
               return (
                 <div className="message">
                   <p className="meta"> {message.username} <span>{message.time}</span></p>
